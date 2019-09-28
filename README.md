@@ -8,9 +8,18 @@ Push BacNet object to Azure IoT
 `mvn clean build`
 
 ### Create bundle
-'mvn clean package'
+`mvn clean package`
 
 ### Verify
 
-'java -jar target/bacnetagent-{version}.jar "{connection string}" "{number of requests to send}" "{https or amqps or mqtt or amqps_ws }" 
+`java -jar target/bacnetagent-{version}.jar "{connection string}" "{number of requests to send}" "{https or amqps or mqtt or amqps_ws }"` 
 
+
+## Docker
+
+### Docker on Ubuntu aka amd64 processors
+
+```
+docker/build-alpine-amd64.sh
+docker/run-alpine.sh
+``` 
