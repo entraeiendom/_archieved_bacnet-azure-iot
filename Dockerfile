@@ -6,14 +6,14 @@ MAINTAINER Bard Lind <bard.lind@gmail.com>
 #RUN yum -y install curl
 
 # Install Application
-RUN adduser bacnetiot
-ADD target/bacnetiot*.jar /home/bacnetiot/bacnetiot.jar
-#ADD docker/bacnetiot_override.properties /home/bacnetiot/bacnetiot-override.properties
-#RUN chown bacnetiot:bacnetiot /home/bacnetiot/bacnetiot.properties
+RUN adduser bacnetagent
+ADD target/bacnetagent*.jar /home/bacnetagent/bacnetagent.jar
+#ADD docker/bacnetagent_override.properties /home/bacnetagent/bacnetagent-override.properties
+#RUN chown bacnetagent:bacnetagent /home/bacnetagent/bacnetagent.properties
 
 #EXPOSE 21500:21599
 
-WORKDIR "/home/bacnetiot"
+WORKDIR "/home/bacnetagent"
 CMD [ \
     "java", \
     "-Xdebug", \
@@ -25,7 +25,7 @@ CMD [ \
 #    "-Dcom.sun.management.jmxremote.authenticate=false", \
 #    "-Djava.rmi.server.hostname=localhost", \
     "-jar", \
-    "bacnetiot.jar" \
+    "bacnetagent.jar" \
 ]
 
 
