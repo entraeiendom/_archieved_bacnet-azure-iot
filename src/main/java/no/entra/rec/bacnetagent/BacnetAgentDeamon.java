@@ -29,6 +29,7 @@ public class BacnetAgentDeamon {
 
     public static void main(String[] args)
             throws IOException, URISyntaxException {
+        //TODO accept docker environment variables
         //Enable INFO level logging, including timestamps. Uncomment the other log levels to get debug or trace level logs as well
         System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO");
         //System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
@@ -39,8 +40,31 @@ public class BacnetAgentDeamon {
         System.out.println("Starting...");
         System.out.println("Beginning setup.");
 
+        String deviceConnectionString = System.getenv("DEVICE_CONNECTION_STRING");
+        if (deviceConnectionString == null) {
+            deviceConnectionString = args[0];
+        }
+
+
+//        String connString = args[0];
+        int numRequests;
+        try {
+            String numRequestsString = System.getenv("NUMBER_REQUESTS");
+            if (numRequestsString != null) {
+                numRequests = Integer.parseInt(numRequestsString);
+            } else {
+                numRequests = Integer.parseInt(args[1]);
+            }
+        } catch (NumberFormatException e) {
+            System.out.format(
+                    "Could not parse the number of requests to send. "
+                            + "Expected an int but received:\n%s.\n", args[1]);
+            return;
+        }
+        IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
+
         String pathToCertificate = null;
-        if (args.length <= 1 || args.length >= 5) {
+        if (isEmpty(deviceConnectionString) || numRequests < 0) {
             System.out.format(
                     "Expected 2 or 3 arguments but received: %d.\n"
                             + "The program should be called with the following args: \n"
@@ -51,18 +75,7 @@ public class BacnetAgentDeamon {
                     args.length);
             return;
         }
-
-        String connString = args[0];
-        int numRequests;
-        try {
-            numRequests = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            System.out.format(
-                    "Could not parse the number of requests to send. "
-                            + "Expected an int but received:\n%s.\n", args[1]);
-            return;
-        }
-        IotHubClientProtocol protocol;
+        /*
         if (args.length == 2) {
             protocol = IotHubClientProtocol.MQTT;
         } else {
@@ -88,21 +101,16 @@ public class BacnetAgentDeamon {
                         protocolStr);
                 return;
             }
-
-            if (args.length == 3) {
-                pathToCertificate = null;
-            } else {
-                pathToCertificate = args[3];
-            }
         }
+        */
 
         System.out.println("Successfully read input parameters.");
         System.out.format("Using communication protocol %s.\n", protocol.name());
 
-        DeviceClient client = new DeviceClient(connString, protocol);
-        if (pathToCertificate != null) {
-            client.setOption("SetCertificatePath", pathToCertificate);
-        }
+        DeviceClient client = new DeviceClient(deviceConnectionString, protocol);
+//        if (pathToCertificate != null) {
+//            client.setOption("SetCertificatePath", pathToCertificate);
+//        }
 
         System.out.println("Successfully created an IoT Hub client.");
 
@@ -182,5 +190,9 @@ public class BacnetAgentDeamon {
         }
 
         System.out.println("Shutting down...");
+    }
+
+    public static boolean isEmpty(String value) {
+        return value == null || value.isEmpty() ;
     }
 }
