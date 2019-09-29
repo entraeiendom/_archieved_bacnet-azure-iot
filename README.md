@@ -21,8 +21,9 @@ Push BacNet object to Azure IoT
 
 ```
 docker/build-alpine-amd64.sh
-TODO docker/run-alpine.sh "DeviceConnectionString"
+docker/run-alpine.sh "DeviceConnectionString"
 ``` 
 
+## Environment Variables
 DEVICE_CONNECTION_STRING
 NUMBER_REQUESTS
