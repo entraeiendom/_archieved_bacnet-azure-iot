@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 
+import java.time.Instant;
+
 import static no.entra.rec.bacnetagent.ObservationTypes.TEMPERATURE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -54,11 +56,13 @@ public class RecMessageTest {
         String deviceId = "sensorGateway1";
         RecMessage message = new RecMessage(deviceId);
         String sensorId = "tempSensor1";
-        TemperatureObservation observation = new TemperatureObservation(sensorId, 16.3);
+        Instant observationTime = Instant.parse("2019-05-27T20:07:44Z");
+        TemperatureObservation observation = new TemperatureObservation(sensorId, 16.3, observationTime);
         message.addObservation(observation);
 
         String messageJson= gson.toJson(message);
         log.debug("actual json: \n {}", messageJson);
         JSONAssert.assertEquals(expectedJson, messageJson,false);
     }
+
 }
