@@ -1,30 +1,36 @@
 package no.entra.rec.bacnetagent;
 
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
 public class RecMessage {
     private final String format = "rec3.1";
     private final String deviceId;
-    private Optional<ArrayList<Observation>> observations;
+    private Observation[] observations;
 
     public RecMessage(String deviceId) {
-        this.deviceId = deviceId;
+        if (deviceId != null && deviceId.startsWith("https://recref.com/device/")) {
+            this.deviceId = deviceId;
+        } else {
+            this.deviceId = "https://recref.com/device/" + deviceId;
+        }
     }
 
-
     public String getDeviceId() {
-        return "https://recref.com/device/" + deviceId;
+        return deviceId;
     }
 
     public void addObservation(Observation observation) {
         if (observations == null) {
-            observations = Optional.of(new ArrayList<>());
+            observations = new Observation[] {observation};
+        } else {
+            List<Observation> observationList = List.of(observations);
+            observationList.add(observation);
+            observations = (Observation[]) observationList.toArray();
         }
-        observations.get().add(observation);
+
     }
 
-    public Optional<ArrayList<Observation>> getObservations() {
+    public Observation[] getObservations() {
         return observations;
     }
 }
