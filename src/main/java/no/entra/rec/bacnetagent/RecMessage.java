@@ -16,4 +16,15 @@ public class RecMessage {
     public String getDeviceId() {
         return "https://recref.com/device/" + deviceId;
     }
+
+    public void addObservation(Observation observation) {
+        if (observations == null) {
+            observations = Optional.of(new ArrayList<>());
+        }
+        observations.get().add(observation);
+    }
+
+    public Optional<ArrayList<Observation>> getObservations() {
+        return observations;
+    }
 }
