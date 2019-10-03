@@ -27,6 +27,19 @@ IOT_SERVICE_PRIMARY_KEY
 az iot hub policy show --name service --query primaryKey --hub-name {your IoT Hub name}
 ```
 
+## Manually send RealEstateCore observations and events IoT Hub
+
+[SendDeviceToCloudMessage](src/main/java/no/entra/rec/bacnetagent/SendDeviceToCloudMessage.java)
+
+Connect to Azure IoT and send messages using MQTT. 
+
+###### Config
+
+DEVICE_CONNECTION_STRING
+```
+az iot hub device-identity show-connection-string --device-id {your IoT Device name} --hub-name entra-edge-dev-hub
+ {your IoT Hub name}
+```
 
 ## Development
 
