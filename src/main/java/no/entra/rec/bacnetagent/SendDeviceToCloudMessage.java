@@ -16,9 +16,7 @@ import static no.entra.rec.bacnetagent.azureiot.SendReceive.D2C_MESSAGE_TIMEOUT;
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.failedMessageListOnClose;
 import static no.entra.rec.bacnetagent.utils.PropertyReader.findProperty;
 
-/**
- * Hello world!
- */
+
 public class SendDeviceToCloudMessage {
     private static final Logger log = LoggerFactory.getLogger(SendDeviceToCloudMessage.class);
     private static final String DEVICE_CONNECTION_STRING = "DEVICE_CONNECTION_STRING";
@@ -83,7 +81,7 @@ public class SendDeviceToCloudMessage {
 
         try {
             Message msg = new Message(msgStr);
-            msg.setContentType("application/json");
+            msg.setContentTypeFinal("application/json");
             msg.setProperty("temperatureAlert", temperature > 28 ? "true" : "false");
             msg.setMessageId(java.util.UUID.randomUUID().toString());
             msg.setExpiryTime(D2C_MESSAGE_TIMEOUT);
