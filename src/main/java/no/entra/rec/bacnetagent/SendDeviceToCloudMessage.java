@@ -18,8 +18,8 @@ import static no.entra.rec.bacnetagent.azureiot.SendReceive.failedMessageListOnC
 /**
  * Hello world!
  */
-public class DeviceToCloudMessage {
-    private static final Logger log = LoggerFactory.getLogger(DeviceToCloudMessage.class);
+public class SendDeviceToCloudMessage {
+    private static final Logger log = LoggerFactory.getLogger(SendDeviceToCloudMessage.class);
 
     /**
      * Send an Event Message to Azure IoT Hub

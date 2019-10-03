@@ -8,6 +8,7 @@ package no.entra.rec.bacnetagent;
 // For documenation see: https://docs.microsoft.com/azure/event-hubs/
 
 import com.microsoft.azure.eventhubs.*;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,8 +20,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ReadDeviceToCloudMessages {
+import static org.slf4j.LoggerFactory.getLogger;
 
+public class ReadDeviceToCloudMessages {
+    private static final Logger log = getLogger(ReadDeviceToCloudMessages.class);
+
+    //TODO #3 Read IOT_SERVICE_PRIMARY_KEY, EVENT_HUB_PATH and EVENT_HUB_ENDPOINT
     // az iot hub show --query properties.eventHubEndpoints.events.endpoint --name {your IoT Hub name}
     private static final String eventHubsCompatibleEndpoint = "{your Event Hubs compatible endpoint}";
 
@@ -46,8 +51,8 @@ public class ReadDeviceToCloudMessages {
         // the time the receiver is created. Typically, you don't want to skip any messages.
         ehClient.createReceiver(EventHubClient.DEFAULT_CONSUMER_GROUP_NAME, partitionId,
                 EventPosition.fromEnqueuedTime(Instant.now())).thenAcceptAsync(receiver -> {
-            System.out.println(String.format("Starting receive loop on partition: %s", partitionId));
-            System.out.println(String.format("Reading messages sent since: %s", Instant.now().toString()));
+            log.debug(String.format("Starting receive loop on partition: %s", partitionId));
+            log.debug(String.format("Reading messages sent since: %s", Instant.now().toString()));
 
             receivers.add(receiver);
 
@@ -59,14 +64,14 @@ public class ReadDeviceToCloudMessages {
                     // If there is data in the batch, process it.
                     if (receivedEvents != null) {
                         for (EventData receivedEvent : receivedEvents) {
-                            System.out.println(String.format("Telemetry received:\n %s",
+                            log.debug(String.format("Telemetry received:\n %s",
                                     new String(receivedEvent.getBytes(), Charset.defaultCharset())));
-                            System.out.println(String.format("Application properties (set by device):\n%s",receivedEvent.getProperties().toString()));
-                            System.out.println(String.format("System properties (set by IoT Hub):\n%s\n",receivedEvent.getSystemProperties().toString()));
+                            log.debug(String.format("Application properties (set by device):\n%s",receivedEvent.getProperties().toString()));
+                            log.debug(String.format("System properties (set by IoT Hub):\n%s\n",receivedEvent.getSystemProperties().toString()));
                         }
                     }
                 } catch (EventHubException e) {
-                    System.out.println("Error reading EventData");
+                    log.debug("Error reading EventData");
                 }
             }
         }, executorService);
@@ -110,9 +115,9 @@ public class ReadDeviceToCloudMessages {
         }
 
         // Shut down cleanly.
-        System.out.println("Press ENTER to exit.");
+        log.debug("Press ENTER to exit.");
         System.in.read();
-        System.out.println("Shutting down...");
+        log.debug("Shutting down...");
         for (PartitionReceiver receiver : receivers) {
             receiver.closeSync();
         }
