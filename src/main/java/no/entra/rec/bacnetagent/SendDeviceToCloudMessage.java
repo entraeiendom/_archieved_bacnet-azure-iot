@@ -14,12 +14,14 @@ import java.util.UUID;
 
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.D2C_MESSAGE_TIMEOUT;
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.failedMessageListOnClose;
+import static no.entra.rec.bacnetagent.utils.PropertyReader.findProperty;
 
 /**
  * Hello world!
  */
 public class SendDeviceToCloudMessage {
     private static final Logger log = LoggerFactory.getLogger(SendDeviceToCloudMessage.class);
+    private static final String DEVICE_CONNECTION_STRING = "DEVICE_CONNECTION_STRING";
 
     /**
      * Send an Event Message to Azure IoT Hub
@@ -32,7 +34,7 @@ public class SendDeviceToCloudMessage {
         log.debug("Starting...");
         log.debug("Beginning setup.");
 
-        String deviceConnectionString = System.getenv("DEVICE_CONNECTION_STRING");
+        String deviceConnectionString = findProperty(DEVICE_CONNECTION_STRING);
         if (deviceConnectionString == null) {
             if (args.length > 0) {
                 deviceConnectionString = args[0];
