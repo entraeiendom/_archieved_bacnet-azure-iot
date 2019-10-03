@@ -72,4 +72,7 @@ docker/build-alpine-amd64.sh
 docker/run-alpine.sh "DeviceConnectionString"
 ``` 
 
+## RealEstateCore mesages
+
+[RealEstateCore example message](https://github.com/RealEstateCore/rec/blob/master/edge_messages/edge_message_example.json)
 
