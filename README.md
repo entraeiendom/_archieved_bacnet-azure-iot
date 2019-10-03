@@ -5,6 +5,15 @@ Push BacNet object to Azure IoT
 
 [BacnetAgentDeamon](src/main/java/no/entra/rec/bacnetagent/BacnetAgentDeamon.java)
 
+###### Config
+
+DEVICE_CONNECTION_STRING
+```
+az iot hub device-identity show-connection-string --device-id {your IoT Device name} --hub-name entra-edge-dev-hub
+ {your IoT Hub name}
+```
+NUMBER_REQUESTS -> temporary 
+
 ## Manually read messages from IoT Hub
 
 [ReadDeviceToCloudMessages](src/main/java/no/entra/rec/bacnetagent/ReadDeviceToCloudMessages.java)
@@ -63,6 +72,4 @@ docker/build-alpine-amd64.sh
 docker/run-alpine.sh "DeviceConnectionString"
 ``` 
 
-## Environment Variables
-DEVICE_CONNECTION_STRING
-NUMBER_REQUESTS
+
