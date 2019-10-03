@@ -38,5 +38,19 @@ public abstract class Observation {
     public String getQuantityKind() {
         return quantityKind;
     }
+
+    /**
+     * Implement this metod to return either String or Nummeric value
+     * @return
+     */
     abstract Object getValue();
+
+    @Override
+    public String toString() {
+        return "Observation{" +
+                "sensorId='" + sensorId + '\'' +
+                ", quantityKind='" + quantityKind + '\'' +
+                ", observationTime='" + observationTime + '\'' +
+                '}';
+    }
 }

@@ -1,5 +1,6 @@
 package no.entra.rec.bacnetagent;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class RecMessage {
@@ -32,5 +33,14 @@ public class RecMessage {
 
     public Observation[] getObservations() {
         return observations;
+    }
+
+    @Override
+    public String toString() {
+        return "RecMessage{" +
+                "format='" + format + '\'' +
+                ", deviceId='" + deviceId + '\'' +
+                ", observations=" + Arrays.toString(observations) +
+                '}';
     }
 }

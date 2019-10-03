@@ -1,5 +1,6 @@
 package no.entra.rec.bacnetagent;
 
+import com.google.gson.Gson;
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.Message;
@@ -31,6 +32,8 @@ public class SendDeviceToCloudMessage {
 
         log.debug("Starting...");
         log.debug("Beginning setup.");
+
+        Gson gson = new Gson();
 
         String deviceConnectionString = findProperty(DEVICE_CONNECTION_STRING);
         if (deviceConnectionString == null) {
@@ -71,13 +74,16 @@ public class SendDeviceToCloudMessage {
 
 
         String deviceId = client.getConfig().getDeviceId();
-        double temperature = 0.0;
-        double humidity = 0.0;
 
-        temperature = 20 + Math.random() * 10;
-        humidity = 30 + Math.random() * 20;
+        double temperature = 20 + Math.random() * 10;
+        double humidity = 30 + Math.random() * 20;
+        RecMessage recMessage = new RecMessage(deviceId);
+        Observation temperatureObservation = new TemperatureObservation("temperatureSensor1", temperature);
+        recMessage.addObservation(temperatureObservation);
         String messageId = UUID.randomUUID().toString();
-        String msgStr = "{\"deviceId\":\"" + deviceId + "\",\"messageId\":" + messageId + ",\"temperature\":" + temperature + ",\"humidity\":" + humidity + "}";
+        IoTEdgeMessage ioTEdgeMessage = new IoTEdgeMessage(deviceId, messageId, recMessage);
+
+        String msgStr = gson.toJson(ioTEdgeMessage); //"{\"deviceId\":\"" + deviceId + "\",\"messageId\":" + messageId + ",\"temperature\":" + temperature + ",\"humidity\":" + humidity + "}";
 
         try {
             Message msg = new Message(msgStr);
