@@ -19,4 +19,8 @@ public class PropertyReader {
         log.debug("Property: {} has value {}", key, value);
         return value;
     }
+
+    public static boolean isEmpty(String value) {
+        return value == null || value.isEmpty();
+    }
 }
