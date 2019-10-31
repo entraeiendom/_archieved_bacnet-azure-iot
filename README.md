@@ -27,3 +27,8 @@ docker/run-alpine.sh "DeviceConnectionString"
 ## Environment Variables
 DEVICE_CONNECTION_STRING
 NUMBER_REQUESTS
+
+## Dependencies
+Currently I'm using a GPLv3 dependency in bacnet4j and bacnet4jwrapper.
+The license in this repo is breaking those licenses. The way forward will be to either
+move this repo to GPLv3, or remove bacne4j dependencies.
