@@ -1,35 +1,38 @@
 package no.entra.rec.bacnetagent;
 
+import com.google.gson.Gson;
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.Message;
 import no.entra.rec.bacnetagent.azureiot.SendReceive;
+import org.slf4j.Logger;
 import org.slf4j.impl.SimpleLogger;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Scanner;
+import java.util.UUID;
 
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.D2C_MESSAGE_TIMEOUT;
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.failedMessageListOnClose;
+import static no.entra.rec.bacnetagent.utils.PropertyReader.findProperty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Hello world!
+ * Agent observing Bacnet objects sent on UDP.
+ * These objects are then forwarded to the IoT Hub using RealEstateCore protocol.
  */
 public class BacnetAgentDeamon {
-    /**
-     * Receives requests from an IoT Hub. Default protocol is to use
-     * use MQTT transport.
-     *
-     * @param args args[0] = IoT Hub connection string
-     *             args[1] = number of requests to send
-     *             args[2] = protocol (optional, one of 'mqtt' or 'amqps' or 'https' or 'amqps_ws')
-     *             args[3] = path to certificate to enable one-way authentication over ssl for amqps (optional, default shall be used if unspecified).
-     */
+    private static final Logger log = getLogger(BacnetAgentDeamon.class);
+    public static final String DEVICE_CONNECTION_STRING = "DEVICE_CONNECTION_STRING";
 
+    /**
+     * Send observations to an IoT Hub using MQTT.
+     * Receive Activation commands using: TODO
+     *
+     */
     public static void main(String[] args)
             throws IOException, URISyntaxException {
-        //TODO accept docker environment variables
         //Enable INFO level logging, including timestamps. Uncomment the other log levels to get debug or trace level logs as well
         System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO");
         //System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
@@ -37,128 +40,69 @@ public class BacnetAgentDeamon {
         System.setProperty(SimpleLogger.SHOW_DATE_TIME_KEY, "true");
         System.setProperty(SimpleLogger.DATE_TIME_FORMAT_KEY, "yyyy-MM-dd HH:mm:ss:SSS");
 
-        System.out.println("Starting...");
-        System.out.println("Beginning setup.");
+        log.debug("Starting...");
+        log.debug("Beginning setup.");
 
-        String deviceConnectionString = System.getenv("DEVICE_CONNECTION_STRING");
-        if (deviceConnectionString == null) {
-            deviceConnectionString = args[0];
-        }
-
-
-//        String connString = args[0];
-        int numRequests;
-        try {
-            String numRequestsString = System.getenv("NUMBER_REQUESTS");
-            if (numRequestsString != null) {
-                numRequests = Integer.parseInt(numRequestsString);
-            } else {
-                numRequests = Integer.parseInt(args[1]);
+        Gson gson = new Gson();
+        String deviceConnectionString = findProperty(DEVICE_CONNECTION_STRING);
+        if (isEmpty(deviceConnectionString)) {
+            if (args.length > 0) {
+                deviceConnectionString = args[0];
             }
-        } catch (NumberFormatException e) {
-            System.out.format(
-                    "Could not parse the number of requests to send. "
-                            + "Expected an int but received:\n%s.\n", args[1]);
-            return;
+            if (isEmpty(deviceConnectionString)) {
+                throw new IllegalArgumentException("Missing required environment variable: " + DEVICE_CONNECTION_STRING);
+            }
         }
+
+
+        int numberOfTestObservations = 5;
+
         IotHubClientProtocol protocol = IotHubClientProtocol.MQTT;
 
-        String pathToCertificate = null;
-        if (isEmpty(deviceConnectionString) || numRequests < 0) {
-            System.out.format(
-                    "Expected 2 or 3 arguments but received: %d.\n"
-                            + "The program should be called with the following args: \n"
-                            + "1. [Device connection string] - String containing Hostname, Device Id & Device Key in one of the following formats: HostName=<iothub_host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>\n"
-                            + "2. [number of requests to send]\n"
-                            + "3. (mqtt | https | amqps | amqps_ws | mqtt_ws)\n"
-                            + "4. (optional) path to certificate to enable one-way authentication over ssl for amqps \n",
-                    args.length);
-            return;
-        }
-        /*
-        if (args.length == 2) {
-            protocol = IotHubClientProtocol.MQTT;
-        } else {
-            String protocolStr = args[2];
-            if (protocolStr.equals("https")) {
-                protocol = IotHubClientProtocol.HTTPS;
-            } else if (protocolStr.equals("amqps")) {
-                protocol = IotHubClientProtocol.AMQPS;
-            } else if (protocolStr.equals("mqtt")) {
-                protocol = IotHubClientProtocol.MQTT;
-            } else if (protocolStr.equals("amqps_ws")) {
-                protocol = IotHubClientProtocol.AMQPS_WS;
-            } else if (protocolStr.equals("mqtt_ws")) {
-                protocol = IotHubClientProtocol.MQTT_WS;
-            } else {
-                System.out.format(
-                        "Expected argument 2 to be one of 'mqtt', 'https', 'amqps' or 'amqps_ws' but received %s\n"
-                                + "The program should be called with the following args: \n"
-                                + "1. [Device connection string] - String containing Hostname, Device Id & Device Key in one of the following formats: HostName=<iothub_host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>\n"
-                                + "2. [number of requests to send]\n"
-                                + "3. (mqtt | https | amqps | amqps_ws | mqtt_ws)\n"
-                                + "4. (optional) path to certificate to enable one-way authentication over ssl for amqps \n",
-                        protocolStr);
-                return;
-            }
-        }
-        */
-
-        System.out.println("Successfully read input parameters.");
-        System.out.format("Using communication protocol %s.\n", protocol.name());
+        log.info("Successfully read input parameters.");
+        log.info("Using communication protocol {}.\n", protocol.name());
 
         DeviceClient client = new DeviceClient(deviceConnectionString, protocol);
-//        if (pathToCertificate != null) {
-//            client.setOption("SetCertificatePath", pathToCertificate);
-//        }
 
-        System.out.println("Successfully created an IoT Hub client.");
+        log.debug("Successfully created an IoT Hub client.");
 
-        if (protocol == IotHubClientProtocol.MQTT) {
-            SendReceive.MessageCallbackMqtt callback = new SendReceive.MessageCallbackMqtt();
-            SendReceive.Counter counter = new SendReceive.Counter(0);
-            client.setMessageCallback(callback, counter);
-        } else {
-            SendReceive.MessageCallback callback = new SendReceive.MessageCallback();
-            SendReceive.Counter counter = new SendReceive.Counter(0);
-            client.setMessageCallback(callback, counter);
-        }
+        SendReceive.MessageCallbackMqtt callback = new SendReceive.MessageCallbackMqtt();
+        SendReceive.Counter counter = new SendReceive.Counter(0);
+        client.setMessageCallback(callback, counter);
 
-        System.out.println("Successfully set message callback.");
+
+        log.debug("Successfully set message callback.");
 
         // Set your token expiry time limit here
         long time = 2400;
         client.setOption("SetSASTokenExpiryTime", time);
-
         client.registerConnectionStatusChangeCallback(new SendReceive.IotHubConnectionStatusChangeCallbackLogger(), new Object());
-
         client.open();
 
-        System.out.println("Opened connection to IoT Hub.");
+        log.info("Opened connection to IoT Hub.");
+        log.debug("Beginning to receive messages...");
+        log.debug("Sending the following event messages: ");
+        log.debug("Updated token expiry time to " + time);
 
-        System.out.println("Beginning to receive messages...");
+        String deviceId = client.getConfig().getDeviceId();
 
-        System.out.println("Sending the following event messages: ");
+        for (int i = 0; i < numberOfTestObservations; ++i) {
+            double temperature = 20 + Math.random() * 10;
+            double humidity = 30 + Math.random() * 20;
+            RecMessage recMessage = new RecMessage(deviceId);
+            Observation temperatureObservation = new TemperatureObservation("temperatureSensor1", temperature);
+            recMessage.addObservation(temperatureObservation);
+            String messageId = UUID.randomUUID().toString();
+            IoTEdgeMessage ioTEdgeMessage = new IoTEdgeMessage(deviceId, messageId, recMessage);
 
-        System.out.println("Updated token expiry time to " + time);
-
-        String deviceId = "MyJavaDevice";
-        double temperature = 0.0;
-        double humidity = 0.0;
-
-        for (int i = 0; i < numRequests; ++i) {
-            temperature = 20 + Math.random() * 10;
-            humidity = 30 + Math.random() * 20;
-
-            String msgStr = "{\"deviceId\":\"" + deviceId + "\",\"messageId\":" + i + ",\"temperature\":" + temperature + ",\"humidity\":" + humidity + "}";
-
+            String msgStr = gson.toJson(ioTEdgeMessage);
             try {
                 Message msg = new Message(msgStr);
-                msg.setContentType("application/json");
+                msg.setContentTypeFinal("application/json");
                 msg.setProperty("temperatureAlert", temperature > 28 ? "true" : "false");
-                msg.setMessageId(java.util.UUID.randomUUID().toString());
+                msg.setMessageId(messageId);
                 msg.setExpiryTime(D2C_MESSAGE_TIMEOUT);
-                System.out.println(msgStr);
+                log.debug(msgStr);
                 SendReceive.EventCallback eventCallback = new SendReceive.EventCallback();
                 client.sendEventAsync(msg, eventCallback, msg);
             } catch (Exception e) {
@@ -167,7 +111,7 @@ public class BacnetAgentDeamon {
 
         }
 
-        System.out.println("Wait for " + D2C_MESSAGE_TIMEOUT / 1000 + " second(s) for response from the IoT Hub...");
+        log.debug("Wait for " + D2C_MESSAGE_TIMEOUT / 1000 + " second(s) for response from the IoT Hub...");
 
         // Wait for IoT Hub to respond.
         try {
@@ -176,20 +120,20 @@ public class BacnetAgentDeamon {
             e.printStackTrace();
         }
 
-        System.out.println("In receive mode. Waiting for receiving C2D messages. Press ENTER to close");
+        log.debug("In receive mode. Waiting for receiving C2D messages. Press ENTER to close");
 
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
 
         // close the connection
-        System.out.println("Closing");
+        log.debug("Closing");
         client.closeNow();
 
         if (!failedMessageListOnClose.isEmpty()) {
-            System.out.println("List of messages that were cancelled on close:" + failedMessageListOnClose.toString());
+            log.debug("List of messages that were cancelled on close:" + failedMessageListOnClose.toString());
         }
 
-        System.out.println("Shutting down...");
+        log.debug("Shutting down...");
     }
 
     public static boolean isEmpty(String value) {

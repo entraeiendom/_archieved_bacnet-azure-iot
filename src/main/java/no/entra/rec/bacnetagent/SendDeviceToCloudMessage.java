@@ -1,5 +1,6 @@
 package no.entra.rec.bacnetagent;
 
+import com.google.gson.Gson;
 import com.microsoft.azure.sdk.iot.device.DeviceClient;
 import com.microsoft.azure.sdk.iot.device.IotHubClientProtocol;
 import com.microsoft.azure.sdk.iot.device.Message;
@@ -14,12 +15,12 @@ import java.util.UUID;
 
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.D2C_MESSAGE_TIMEOUT;
 import static no.entra.rec.bacnetagent.azureiot.SendReceive.failedMessageListOnClose;
+import static no.entra.rec.bacnetagent.utils.PropertyReader.findProperty;
 
-/**
- * Hello world!
- */
-public class DeviceToCloudMessage {
-    private static final Logger log = LoggerFactory.getLogger(DeviceToCloudMessage.class);
+
+public class SendDeviceToCloudMessage {
+    private static final Logger log = LoggerFactory.getLogger(SendDeviceToCloudMessage.class);
+    private static final String DEVICE_CONNECTION_STRING = "DEVICE_CONNECTION_STRING";
 
     /**
      * Send an Event Message to Azure IoT Hub
@@ -32,7 +33,9 @@ public class DeviceToCloudMessage {
         log.debug("Starting...");
         log.debug("Beginning setup.");
 
-        String deviceConnectionString = System.getenv("DEVICE_CONNECTION_STRING");
+        Gson gson = new Gson();
+
+        String deviceConnectionString = findProperty(DEVICE_CONNECTION_STRING);
         if (deviceConnectionString == null) {
             if (args.length > 0) {
                 deviceConnectionString = args[0];
@@ -71,17 +74,20 @@ public class DeviceToCloudMessage {
 
 
         String deviceId = client.getConfig().getDeviceId();
-        double temperature = 0.0;
-        double humidity = 0.0;
 
-        temperature = 20 + Math.random() * 10;
-        humidity = 30 + Math.random() * 20;
+        double temperature = 20 + Math.random() * 10;
+        double humidity = 30 + Math.random() * 20;
+        RecMessage recMessage = new RecMessage(deviceId);
+        Observation temperatureObservation = new TemperatureObservation("temperatureSensor1", temperature);
+        recMessage.addObservation(temperatureObservation);
         String messageId = UUID.randomUUID().toString();
-        String msgStr = "{\"deviceId\":\"" + deviceId + "\",\"messageId\":" + messageId + ",\"temperature\":" + temperature + ",\"humidity\":" + humidity + "}";
+        IoTEdgeMessage ioTEdgeMessage = new IoTEdgeMessage(deviceId, messageId, recMessage);
+
+        String msgStr = gson.toJson(ioTEdgeMessage); //"{\"deviceId\":\"" + deviceId + "\",\"messageId\":" + messageId + ",\"temperature\":" + temperature + ",\"humidity\":" + humidity + "}";
 
         try {
             Message msg = new Message(msgStr);
-            msg.setContentType("application/json");
+            msg.setContentTypeFinal("application/json");
             msg.setProperty("temperatureAlert", temperature > 28 ? "true" : "false");
             msg.setMessageId(java.util.UUID.randomUUID().toString());
             msg.setExpiryTime(D2C_MESSAGE_TIMEOUT);
